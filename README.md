@@ -6,14 +6,16 @@
 支持上传大于5MB的图片
 
 # 使用方法
-### worker
+## worker
 复制worker.js代码，修改第二行example.com为你的自定义域名即可！
 
-### 服务器部署
-安装nginx+php
+支持配置多接口，修改代码中的interfaceConfigs和getImageURL即可！
+responseData返回的是接口的json内容
+
+### nginx+php
 下载源码，将文件上传到网站目录，访问域名即可！
 
-#### 配置自己的反代域名
+配置自己的反代域名
 修改nginx配置
 ```
 location /file {
