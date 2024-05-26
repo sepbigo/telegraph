@@ -280,7 +280,6 @@ function handleRootRequest() {
     });
   </script>
 
-  
 </body>
 </html>
   `;
