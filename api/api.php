@@ -4,7 +4,7 @@ class ImageUploader {
     private const ALLOWED_EXTENSIONS = ['gif', 'jpeg', 'jpg', 'png'];
     private const MAX_SIZE = 5 * 1024 * 1024; // 5MB
     private const MAX_RESOLUTION = 25 * 1024 * 1024; // 25MB
-    private const DOMAINS = ['img.pub', 'pic.ym.today'];
+    private const DOMAINS = ['img.pub'];
     private const UPLOAD_URL = 'https://telegra.ph/upload';
 
     // 文件头部的魔术数字
