@@ -146,20 +146,31 @@ $(document).ready(function() {
     const selectedInterface = $('#interfaceSelector').val();
     const file = $('#fileInput')[0].files[0];
   
-    if (file && file.size > 5 * 1024 * 1024) {
-      if (file.type === 'image/gif') {
-        toastr.error('GIF 文件必须≤5MB');
-      } else {
-        const compressedFile = await compressImage(file);
-        await uploadFile(compressedFile);
+    if (file) {
+      if (file.size > 5 * 1024 * 1024 || (file.type === 'image/gif' && file.size > 5 * 1024 * 1024)) {
+        toastr.error('文件大小不能超过5MB！');
+        return;
       }
-      return;
-    }
   
-    if (file && (file.type === 'image/gif' || file.type.includes('image/'))) {
-      await uploadFile(file);
+      if (file.type.includes('image/')) {
+        const image = new Image();
+        image.src = URL.createObjectURL(file);
+  
+        image.onload = async function() {
+          const width = this.width;
+          const height = this.height;
+          const resolution = width * height;
+  
+          if (resolution > 20000000) {
+            const compressedFile = await compressImage(file);
+            uploadFile(compressedFile);
+          } else {
+            uploadFile(file);
+          }
+        };
+      }
     }
-  }
+  }  
   
   // 处理上传文件函数  
   async function uploadFile(file) {
