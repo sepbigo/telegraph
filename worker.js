@@ -90,195 +90,206 @@ function handleRootRequest() {
             <!-- 文件链接文本框 -->
             <div class="form-group mb-3" style="display: none;"> <!-- 初始隐藏 -->
                 <textarea class="form-control" id="fileLink" readonly></textarea>
-            </div>
-            <!-- 上传中的提示 -->
-            <div id="uploadingText" style="display: none; text-align: center;">文件上传中...</div>          
-        </form>
+                </div>
+                <!-- 上传中的提示 -->
+                <div id="uploadingText" style="display: none; text-align: center;">文件上传中...</div>
+                <!-- 压缩中的提示 -->
+                <div id="compressingText" style="display: none; text-align: center;">图片压缩中...</div>
+            </form>
     </div>
     <p style="font-size: 14px; text-align: center;">
     项目开源于 GitHub - <a href="https://github.com/0-RTT/telegraph" target="_blank" rel="noopener noreferrer">0-RTT/telegraph</a>
     </p>   
 </div>
 <script>
-  $(document).ready(function () {
-    let originalImageURL = '';
+$(document).ready(function() {
+  let originalImageURL = '';
 
-    // 初始化文件上传
-    initFileInput();
+  // 初始化文件上传
+  initFileInput();
 
-    // 文件上传初始化函数
-    function initFileInput() {
-      $("#fileInput").fileinput({
-        theme: 'fa',
-        language: 'zh',
-        dropZoneEnabled: true,
-        browseOnZoneClick: true,
-        dropZoneTitle: "拖拽文件到这里...",
-        dropZoneClickTitle: "",
-        browseClass: "btn btn-light",
-        uploadClass: "btn btn-light",
-        removeClass: "btn btn-light",
-        showUpload: false,
-        layoutTemplates: {
-          actionZoom: '',
-        },
-      }).on('filebatchselected', handleFileSelection)
-        .on('fileclear', handleFileClear); // 添加移除按钮点击事件处理程序
+  // 文件上传初始化函数
+  function initFileInput() {
+    $("#fileInput").fileinput({
+      theme: 'fa',
+      language: 'zh',
+      dropZoneEnabled: true,
+      browseOnZoneClick: true,
+      dropZoneTitle: "拖拽文件到这里...",
+      dropZoneClickTitle: "",
+      browseClass: "btn btn-light",
+      uploadClass: "btn btn-light",
+      removeClass: "btn btn-light",
+      showUpload: false,
+      layoutTemplates: {
+        actionZoom: '',
+      },
+    }).on('filebatchselected', handleFileSelection)
+      .on('fileclear', handleFileClear);
+  }
+
+  // 处理接口选择器变更事件
+  $('#interfaceSelector').change(function() {
+    const selectedInterface = $(this).val();
+    let acceptTypes = '';
+  
+    switch (selectedInterface) {
+      case 'tg':
+        acceptTypes = 'image/gif,image/jpeg,image/png';
+        break;
     }
+    $('#fileInput').attr('accept', acceptTypes);
+  }).trigger('change');
 
-    // 处理文件选择事件
-    async function handleFileSelection() {
-      const selectedInterface = $('#interfaceSelector').val();
-      const file = $('#fileInput')[0].files[0];
+  // 处理文件选择事件
+  async function handleFileSelection() {
+    const selectedInterface = $('#interfaceSelector').val();
+    const file = $('#fileInput')[0].files[0];
 
-      // 检查文件大小是否大于5MB
-      if (file && file.size > 5 * 1024 * 1024) {
-        if (file.type === 'image/gif') {
-          toastr.error('GIF 文件必须≤5MB');
-        } else {
-          // 对于大于5MB的非GIF图片，执行压缩处理
-          const compressedFile = await compressImage(file);
-          await uploadFile(compressedFile); // 上传处理后的文件
-        }
-        return;
-      }
-
-      // 对于小于等于5MB的GIF和图片，直接上传
-      if (file && (file.type === 'image/gif' || file.type.includes('image/'))) {
-        await uploadFile(file);
-      }
-    }
-
-    // 上传文件函数
-    async function uploadFile(file) {
-      try {
-        $('#uploadingText').show();
-        const formData = new FormData($('#uploadForm')[0]);
-        formData.set('file', file, file.name);
-        const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
-        originalImageURL = await handleUploadResponse(uploadResponse);
-        $('#fileLink').val(originalImageURL);
-        $('.form-group').show();
-        adjustTextareaHeight($('#fileLink')[0]);
-      } catch (error) {
-        console.error('上传文件时出现错误:', error);
-        $('#fileLink').val('文件上传失败！');
-      } finally {
-        $('#uploadingText').hide();
-      }
-    }
-
-    // 处理上传响应
-    async function handleUploadResponse(response) {
-      if (response.ok) {
-        const result = await response.json();
-        return result.data;
+    if (file && file.size > 5 * 1024 * 1024) {
+      if (file.type === 'image/gif') {
+        toastr.error('GIF 文件必须≤5MB');
       } else {
-        return '文件上传失败！';
+        const compressedFile = await compressImage(file);
+        await uploadFile(compressedFile);
       }
+      return;
     }
 
-    // 处理移除按钮点击事件
-    function handleFileClear(event) {
-      // 清空文本框的内容
-      $('#fileLink').val('');
+    if (file && (file.type === 'image/gif' || file.type.includes('image/'))) {
+      await uploadFile(file);
+    }
+  }
 
-      // 上传完成后调整文本框高度
+  // 处理上传文件函数
+  async function uploadFile(file) {
+    try {
+      $('#uploadingText').show();
+      const formData = new FormData($('#uploadForm')[0]);
+      formData.set('file', file, file.name);
+      const uploadResponse = await fetch('/upload', { method: 'POST', body: formData });
+      originalImageURL = await handleUploadResponse(uploadResponse);
+      $('#fileLink').val(originalImageURL);
+      $('.form-group').show();
       adjustTextareaHeight($('#fileLink')[0]);
-
-      // 隐藏按钮和文本框
-      hideButtonsAndTextarea();
+    } catch (error) {
+      console.error('上传文件时出现错误:', error);
+      $('#fileLink').val('文件上传失败！');
+    } finally {
+      $('#uploadingText').hide();
     }
+  }
 
-    // 根据接口选择器的值设置文件类型接受属性
-    $('#interfaceSelector').change(function () {
-      const selectedInterface = $(this).val();
-      let acceptTypes = '';
-    
-      switch (selectedInterface) {
-        case 'tg':
-          acceptTypes = 'image/gif,image/jpeg,image/png';
-          break;
-      }
-      $('#fileInput').attr('accept', acceptTypes);
-    }).trigger('change');
+  // 处理上传响应函数
+  async function handleUploadResponse(response) {
+    if (response.ok) {
+      const result = await response.json();
+      return result.data;
+    } else {
+      return '文件上传失败！';
+    }
+  }
 
-    // 处理按钮点击事件
-    $('#urlBtn, #bbcodeBtn, #markdownBtn').on('click', function () {
-      const fileLink = originalImageURL.trim();
-      if (fileLink !== '') {
-        let formattedLink;
-        switch ($(this).attr('id')) {
+  // 处理按钮点击事件
+  $('#urlBtn, #bbcodeBtn, #markdownBtn').on('click', function() {
+    const fileLink = originalImageURL.trim();
+    if (fileLink !== '') {
+      let formattedLink;
+      switch ($(this).attr('id')) {
+        case 'urlBtn':
+          formattedLink = fileLink;
+          break
           case 'urlBtn':
             formattedLink = fileLink;
-            break
-            case 'urlBtn':
-              formattedLink = fileLink;
-              break;
-            case 'bbcodeBtn':
-              formattedLink = '[img]' + fileLink + '[/img]';
-              break;
-            case 'markdownBtn':
-              formattedLink = '![image](' + fileLink + ')';
-              break;
-            default:
-              formattedLink = fileLink;
-          }
-          $('#fileLink').val(formattedLink);
-          adjustTextareaHeight($('#fileLink')[0]); // 调整文本框高度
-          copyToClipboardWithToastr(formattedLink);
+            break;
+          case 'bbcodeBtn':
+            formattedLink = '[img]' + fileLink + '[/img]';
+            break;
+          case 'markdownBtn':
+            formattedLink = '![image](' + fileLink + ')';
+            break;
+          default:
+            formattedLink = fileLink;
+      }
+      $('#fileLink').val(formattedLink);
+      adjustTextareaHeight($('#fileLink')[0]);
+      copyToClipboardWithToastr(formattedLink);
+    }
+  });
+
+  // 处理移除按钮点击事件
+  function handleFileClear(event) {
+    $('#fileLink').val('');
+    adjustTextareaHeight($('#fileLink')[0]);
+    hideButtonsAndTextarea();
+  }
+
+  // 自动调整文本框高度函数
+  function adjustTextareaHeight(textarea) {
+    textarea.style.height = '1px';
+    textarea.style.height = (textarea.scrollHeight) + 'px';
+  }
+
+  // 复制文本到剪贴板，并显示 toastr 提示框
+  function copyToClipboardWithToastr(text) {
+    const input = document.createElement('input');
+    input.setAttribute('value', text);
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    toastr.success('已复制到剪贴板', '', { timeOut: 300 });
+  }
+
+  // 隐藏按钮和文本框
+  function hideButtonsAndTextarea() {
+    $('#urlBtn, #bbcodeBtn, #markdownBtn, #fileLink').parent('.form-group').hide();
+  }
+
+  // 处理图片压缩事件
+  async function compressImage(file, quality = 0.6, maxResolution = 20000000) {
+    $('#compressingText').show();
+
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => {
+        const width = image.width;
+        const height = image.height;
+
+        const resolution = width * height;
+
+        let scale = 1;
+        if (resolution > maxResolution) {
+          scale = Math.sqrt(maxResolution / resolution);
         }
-      });
-  
-      // 自动调整文本框高度函数
-      function adjustTextareaHeight(textarea) {
-        textarea.style.height = '1px'; // 先将高度设置为最小值
-        textarea.style.height = (textarea.scrollHeight) + 'px'; // 根据内容重新设置高度
-      }
-  
-      // 复制文本到剪贴板，并显示 toastr 提示框
-      function copyToClipboardWithToastr(text) {
-        const input = document.createElement('input');
-        input.setAttribute('value', text);
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
-  
-        toastr.success('已复制到剪贴板', '', { timeOut: 300 });
-      }
-  
-      // 隐藏按钮和文本框
-      function hideButtonsAndTextarea() {
-        $('#urlBtn, #bbcodeBtn, #markdownBtn, #fileLink').parent('.form-group').hide();
-      }
-  
-      // 图片压缩函数
-      function compressImage(file) {
-        return new Promise((resolve) => {
-          const quality = 0.6;
-          const reader = new FileReader();
-          reader.onload = ({ target: { result: src } }) => {
-            const image = new Image();
-            image.onload = async () => {
-              const canvas = document.createElement('canvas');
-              canvas.width = image.width;
-              canvas.height = image.height;
-              const ctx = canvas.getContext('2d'); 
-              ctx.drawImage(image, 0, 0, image.width, image.height); 
-              const compressedDataURL = canvas.toDataURL('image/jpeg', quality);
-              const blob = await fetch(compressedDataURL).then(res => res.blob());
-              const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-  
-              resolve(compressedFile);
-            };
-            image.src = src;
-          };
-          reader.readAsDataURL(file);
-        });
-      }
+
+        const targetWidth = Math.round(width * scale);
+        const targetHeight = Math.round(height * scale);
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+        canvas.toBlob((blob) => {
+          const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+          $('#compressingText').hide();
+          resolve(compressedFile);
+        }, 'image/jpeg', quality);
+      };
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        image.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
     });
-  </script>
+  }
+});
+
+</script>
 
 </body>
 </html>
@@ -358,4 +369,3 @@ return new Response(html, { headers: { 'Content-Type': 'text/html;charset=UTF-8'
     
     return url;
   }
-  
