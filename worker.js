@@ -69,38 +69,38 @@ function handleRootRequest() {
     <div class="card">
     <div class="title">JIASU.IN</div>
     <div class="card-body">
-        <!-- 表单 -->
-        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-            <!-- 接口选择下拉菜单 -->
-            <div class="form-group mb-3">
-                <select class="custom-select" id="interfaceSelector" name="interface">
-                <option value="tg">tg</option>
-                </select>
-            </div>
-            <!-- 文件选择 -->
-            <div class="form-group mb-3">
-            <input id="fileInput" name="file" type="file" class="form-control-file" data-browse-on-zone-click="true">
-            </div>            
-            <!-- 添加按钮组 -->
-            <div class="form-group mb-3" style="display: none;"> <!-- 初始隐藏 -->
-                <button type="button" class="btn btn-light mr-2" id="urlBtn">URL</button>
-                <button type="button" class="btn btn-light mr-2" id="bbcodeBtn">BBCode</button>
-                <button type="button" class="btn btn-light" id="markdownBtn">Markdown</button>
-            </div>
-            <!-- 文件链接文本框 -->
-            <div class="form-group mb-3" style="display: none;"> <!-- 初始隐藏 -->
-                <textarea class="form-control" id="fileLink" readonly></textarea>
-                </div>
-                <!-- 上传中的提示 -->
-                <div id="uploadingText" style="display: none; text-align: center;">文件上传中...</div>
-                <!-- 压缩中的提示 -->
-                <div id="compressingText" style="display: none; text-align: center;">图片压缩中...</div>
-            </form>
+      <!-- 表单 -->
+      <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+        <!-- 接口选择下拉菜单 -->
+        <div class="form-group mb-3">
+          <select class="custom-select" id="interfaceSelector" name="interface">
+            <option value="tg">tg</option>
+          </select>
+        </div>
+        <!-- 文件选择 -->
+        <div class="form-group mb-3">
+          <input id="fileInput" name="file" type="file" class="form-control-file" data-browse-on-zone-click="true">
+        </div>            
+        <!-- 添加按钮组 -->
+        <div class="form-group mb-3" style="display: none;"> <!-- 初始隐藏 -->
+          <button type="button" class="btn btn-light mr-2" id="urlBtn">URL</button>
+          <button type="button" class="btn btn-light mr-2" id="bbcodeBtn">BBCode</button>
+          <button type="button" class="btn btn-light" id="markdownBtn">Markdown</button>
+        </div>
+        <!-- 文件链接文本框 -->
+        <div class="form-group mb-3" style="display: none;"> <!-- 初始隐藏 -->
+          <textarea class="form-control" id="fileLink" readonly></textarea>
+        </div>
+        <!-- 上传中的提示 -->
+        <div id="uploadingText" style="display: none; text-align: center;">文件上传中...</div>
+        <!-- 压缩中的提示 -->
+        <div id="compressingText" style="display: none; text-align: center;">图片压缩中...</div>
+      </form>
     </div>
     <p style="font-size: 14px; text-align: center;">
-    项目开源于 GitHub - <a href="https://github.com/0-RTT/telegraph" target="_blank" rel="noopener noreferrer">0-RTT/telegraph</a>
+      项目开源于 GitHub - <a href="https://github.com/0-RTT/telegraph" target="_blank" rel="noopener noreferrer">0-RTT/telegraph</a>
     </p>   
-</div>
+  </div>  
 <script>
 $(document).ready(function() {
   let originalImageURL = '';
