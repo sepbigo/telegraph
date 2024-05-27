@@ -146,21 +146,23 @@ $(document).ready(function() {
     const selectedInterface = $('#interfaceSelector').val();
     const file = $('#fileInput')[0].files[0];
   
-    if (file && file.size > 5 * 1024 * 1024) {
+    if (file) {
       if (file.type === 'image/gif') {
-        toastr.error('GIF 文件必须≤5MB');
+        if (file.size > 5 * 1024 * 1024) {
+          toastr.error('GIF 文件必须≤5MB');
+          return;
+        } else {
+          await uploadFile(file);
+          return;
+        }
       } else {
         const compressedFile = await compressImage(file);
         await uploadFile(compressedFile);
+        return;
       }
-      return;
-    }
-  
-    if (file && (file.type === 'image/gif' || file.type.includes('image/'))) {
-      await uploadFile(file);
     }
   }
-  
+   
   // 处理上传文件函数  
   async function uploadFile(file) {
     try {
@@ -181,7 +183,7 @@ $(document).ready(function() {
   }
   
   //处理图片压缩事件
-  async function compressImage(file, quality = 0.6, maxResolution = 20000000) {
+  async function compressImage(file, quality = 0.5, maxResolution = 20000000) {
     $('#compressingText').show();
   
     return new Promise((resolve) => {
