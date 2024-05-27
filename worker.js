@@ -105,9 +105,9 @@ function handleRootRequest() {
 $(document).ready(function() {
   let originalImageURL = '';
 
-  // 初始化文件上传
+  // 初始化文件上传 
   initFileInput();
-
+  
   // 文件上传初始化函数
   function initFileInput() {
     $("#fileInput").fileinput({
@@ -127,8 +127,8 @@ $(document).ready(function() {
     }).on('filebatchselected', handleFileSelection)
       .on('fileclear', handleFileClear);
   }
-
-  // 处理接口选择器变更事件
+  
+  // 处理接口选择器变更事件  
   $('#interfaceSelector').change(function() {
     const selectedInterface = $(this).val();
     let acceptTypes = '';
@@ -140,12 +140,12 @@ $(document).ready(function() {
     }
     $('#fileInput').attr('accept', acceptTypes);
   }).trigger('change');
-
-  // 处理文件选择事件
+  
+  // 处理文件选择事件  
   async function handleFileSelection() {
     const selectedInterface = $('#interfaceSelector').val();
     const file = $('#fileInput')[0].files[0];
-
+  
     if (file && file.size > 5 * 1024 * 1024) {
       if (file.type === 'image/gif') {
         toastr.error('GIF 文件必须≤5MB');
@@ -155,13 +155,13 @@ $(document).ready(function() {
       }
       return;
     }
-
+  
     if (file && (file.type === 'image/gif' || file.type.includes('image/'))) {
       await uploadFile(file);
     }
   }
-
-  // 处理上传文件函数
+  
+  // 处理上传文件函数  
   async function uploadFile(file) {
     try {
       $('#uploadingText').show();
@@ -179,7 +179,42 @@ $(document).ready(function() {
       $('#uploadingText').hide();
     }
   }
-
+  
+  //处理图片压缩事件
+  async function compressImage(file, quality = 0.6, maxResolution = 20000000) {
+    $('#compressingText').show();
+  
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => {
+        const width = image.width;
+        const height = image.height;  
+        const resolution = width * height;  
+        let scale = 1;
+        if (resolution > maxResolution) {
+          scale = Math.sqrt(maxResolution / resolution);
+        }  
+        const targetWidth = Math.round(width * scale);
+        const targetHeight = Math.round(height * scale);  
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');  
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        ctx.drawImage(image, 0, 0, targetWidth, targetHeight); 
+        canvas.toBlob((blob) => {
+          const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+          $('#compressingText').hide();
+          resolve(compressedFile);
+        }, 'image/jpeg', quality);
+      };  
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        image.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  
   // 处理上传响应函数
   async function handleUploadResponse(response) {
     if (response.ok) {
@@ -189,8 +224,8 @@ $(document).ready(function() {
       return '文件上传失败！';
     }
   }
-
-  // 处理按钮点击事件
+  
+  // 处理按钮点击事件 
   $('#urlBtn, #bbcodeBtn, #markdownBtn').on('click', function() {
     const fileLink = originalImageURL.trim();
     if (fileLink !== '') {
@@ -198,39 +233,36 @@ $(document).ready(function() {
       switch ($(this).attr('id')) {
         case 'urlBtn':
           formattedLink = fileLink;
-          break
-          case 'urlBtn':
-            formattedLink = fileLink;
-            break;
-          case 'bbcodeBtn':
-            formattedLink = '[img]' + fileLink + '[/img]';
-            break;
-          case 'markdownBtn':
-            formattedLink = '![image](' + fileLink + ')';
-            break;
-          default:
-            formattedLink = fileLink;
+          break;
+        case 'bbcodeBtn':
+          formattedLink = '[img]' + fileLink + '[/img]';
+          break;
+        case 'markdownBtn':
+          formattedLink = '![image](' + fileLink + ')';
+          break;
+        default:
+          formattedLink = fileLink;
       }
       $('#fileLink').val(formattedLink);
       adjustTextareaHeight($('#fileLink')[0]);
       copyToClipboardWithToastr(formattedLink);
     }
   });
-
-  // 处理移除按钮点击事件
+  
+  // 处理移除按钮点击事件 
   function handleFileClear(event) {
     $('#fileLink').val('');
     adjustTextareaHeight($('#fileLink')[0]);
     hideButtonsAndTextarea();
   }
-
+  
   // 自动调整文本框高度函数
   function adjustTextareaHeight(textarea) {
     textarea.style.height = '1px';
     textarea.style.height = (textarea.scrollHeight) + 'px';
   }
-
-  // 复制文本到剪贴板，并显示 toastr 提示框
+  
+  // 复制文本到剪贴板，并显示 toastr 提示框 
   function copyToClipboardWithToastr(text) {
     const input = document.createElement('input');
     input.setAttribute('value', text);
@@ -240,53 +272,12 @@ $(document).ready(function() {
     document.body.removeChild(input);
     toastr.success('已复制到剪贴板', '', { timeOut: 300 });
   }
-
+  
   // 隐藏按钮和文本框
   function hideButtonsAndTextarea() {
     $('#urlBtn, #bbcodeBtn, #markdownBtn, #fileLink').parent('.form-group').hide();
   }
-
-  // 处理图片压缩事件
-  async function compressImage(file, quality = 0.6, maxResolution = 20000000) {
-    $('#compressingText').show();
-
-    return new Promise((resolve) => {
-      const image = new Image();
-      image.onload = () => {
-        const width = image.width;
-        const height = image.height;
-
-        const resolution = width * height;
-
-        let scale = 1;
-        if (resolution > maxResolution) {
-          scale = Math.sqrt(maxResolution / resolution);
-        }
-
-        const targetWidth = Math.round(width * scale);
-        const targetHeight = Math.round(height * scale);
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = targetWidth;
-        canvas.height = targetHeight;
-        ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
-
-        canvas.toBlob((blob) => {
-          const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
-          $('#compressingText').hide();
-          resolve(compressedFile);
-        }, 'image/jpeg', quality);
-      };
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        image.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
+  
 });
 
 </script>
